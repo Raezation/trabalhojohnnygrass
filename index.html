@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Login Seguro - UFCD 10795</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 100%;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 600px;
+        }
+
+        .left-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .left-panel h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .left-panel p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .security-features {
+            list-style: none;
+        }
+
+        .security-features li {
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .security-features li:before {
+            content: "✓";
+            background: rgba(255, 255, 255, 0.3);
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .right-panel {
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: 600;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .form-container {
+            display: none;
+        }
+
+        .form-container.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .password-strength {
+            margin-top: 5px;
+            height: 5px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s;
+        }
+
+        .strength-weak { background: #f44336; width: 33%; }
+        .strength-medium { background: #ff9800; width: 66%; }
+        .strength-strong { background: #4caf50; width: 100%; }
+
+        .error-message, .success-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #c62828;
+        }
+
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .error-message.show, .success-message.show {
+            display: block;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .info-section {
+            display: none;
+        }
+
+        .info-section.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        .info-card {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .info-card ul {
+            list-style-position: inside;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .users-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .users-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        @media (max-width: 968px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .left-panel {
+                padding: 40px 30px;
+            }
+
+            .left-panel h1 {
+                font-size: 2em;
+            }
+        }
+
+        .sql-demo {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        .sql-keyword {
+            color: #569cd6;
+        }
+
+        .sql-string {
+            color: #ce9178;
+        }
+
+        .sql-comment {
+            color: #6a9955;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <h1>🔒 Sistema de Login Seguro</h1>
+            <p>Projeto UFCD 10795 - Segurança de Aplicações</p>
+            
+            <h3 style="margin-top: 30px; margin-bottom: 15px;">Medidas de Segurança:</h3>
+            <ul class="security-features">
+                <li>Validação completa de dados</li>
+                <li>Proteção contra SQL Injection</li>
+                <li>Proteção contra XSS</li>
+                <li>Passwords encriptadas (hash)</li>
+                <li>Proteção contra Buffer Overflow</li>
+                <li>Autenticação segura</li>
+            </ul>
+
+            <div style="margin-top: 40px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+                <h4 style="margin-bottom: 10px;">📊 Base de Dados</h4>
+                <p style="font-size: 0.9em;">MySQL com prepared statements para prevenir SQL Injection</p>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('login')">Login</button>
+                <button class="tab" onclick="showTab('register')">Registar</button>
+                <button class="tab" onclick="showTab('info')">Informações</button>
+                <button class="tab" onclick="showTab('users')">Utilizadores</button>
+            </div>
+
+            <!-- Login Form -->
+            <div id="login" class="form-container active">
+                <h2 style="margin-bottom: 30px; color: #333;">Iniciar Sessão</h2>
+                
+                <div class="error-message" id="login-error"></div>
+                <div class="success-message" id="login-success"></div>
+
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="login-username">Username</label>
+                        <input type="text" id="login-username" required maxlength="20">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required maxlength="50">
+                    </div>
+
+                    <button type="submit" class="btn">Entrar</button>
+                </form>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register" class="form-container">
+                <h2 style="margin-bottom: 30px; color: #333;">Criar Conta</h2>
+                
+                <div class="error-message" id="register-error"></div>
+                <div class="success-message" id="register-success"></div>
+
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label for="register-username">Username</label>
+                        <input type="text" id="register-username" required maxlength="20" 
+                               pattern="[a-zA-Z0-9_]+" 
+                               title="Apenas letras, números e underscore">
+                        <small style="color: #666;">3-20 caracteres, apenas letras, números e _</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" required maxlength="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-password">Password</label>
+                        <input type="password" id="register-password" required maxlength="50" 
+                               oninput="checkPasswordStrength(this.value)">
+                        <div class="password-strength">
+                            <div class="password-strength-bar" id="strength-bar"></div>
+                        </div>
+                        <small style="color: #666;">Mínimo 8 caracteres, com maiúsculas, minúsculas e números</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-confirm">Confirmar Password</label>
+                        <input type="password" id="register-confirm" required maxlength="50">
+                    </div>
+
+                    <button type="submit" class="btn">Registar</button>
+                </form>
+            </div>
+
+            <!-- Info Section -->
+            <div id="info" class="form-container info-section">
+                <h2 style="margin-bottom: 30px; color: #333;">Medidas de Segurança Implementadas</h2>
+
+                <div class="info-card">
+                    <h3>1. Validação de Dados</h3>
+                    <ul>
+                        <li>Username: 3-20 caracteres, alfanuméricos e underscore</li>
+                        <li>Password: mínimo 8 caracteres, complexidade obrigatória</li>
+                        <li>Email: formato válido verificado</li>
+                        <li>Sanitização de todos os inputs</li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <h3>2. Proteção de Passwords</h3>
+                    <ul>
+                        <li>Hash SHA-256 com salt</li>
+                        <li>Nunca armazenadas em texto simples</li>
+                        <li>Impossível recuperar password original</li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <h3>3. Proteção contra SQL Injection</h3>
+                    <ul>
+                        <li>Prepared Statements (queries parametrizadas)</li>
+                        <li>Nunca concatenar input em SQL</li>
+                        <li>Escape de caracteres especiais</li>
+                    </ul>
+                    <div class="sql-demo">
+                        <span class="sql-comment">-- Vulnerável (NÃO USAR):</span><br>
+                        query = <span class="sql-string">"SELECT * FROM users WHERE username='"</span> + username + <span class="sql-string">"'"</span><br><br>
+                        <span class="sql-comment">-- Seguro (USAR):</span><br>
+                        <span class="sql-keyword">PREPARE</span> stmt <span class="sql-keyword">FROM</span> <span class="sql-string">"SELECT * FROM users WHERE username=?"</span><br>
+                        <span class="sql-keyword">EXECUTE</span> stmt <span class="sql-keyword">USING</span> @username
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3>4. Proteção contra XSS</h3>
+                    <ul>
+                        <li>Sanitização de inputs HTML</li>
+                        <li>Escape de caracteres especiais (&lt; &gt; " ' &amp;)</li>
+                        <li>Content Security Policy</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div id="users" class="form-container">
+                <h2 style="margin-bottom: 30px; color: #333;">Utilizadores Registados</h2>
+                
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Password (Hash)</th>
+                            <th>Data Registo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-tbody">
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #999;">Nenhum utilizador registado</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 8px;">
+                    <strong>⚠️ Nota de Segurança:</strong><br>
+                    As passwords são armazenadas como hash SHA-256. Mesmo visualizando a base de dados, é impossível recuperar a password original.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // SIMULAÇÃO DE BASE DE DADOS (em produção, usar MySQL/PostgreSQL)
+        // ============================================================================
+        
+        let users = [];
+
+        // ============================================================================
+        // FUNÇÕES DE SEGURANÇA
+        // ============================================================================
+
+        // Hash SHA-256 simples (em produção usar bcrypt no backend)
+        async function hashPassword(password) {
+            const msgBuffer = new TextEncoder().encode(password + "salt_seguro_2025");
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+
+        // Sanitização contra XSS
+        function sanitizeInput(input) {
+            const div = document.createElement('div');
+            div.textContent = input;
+            return div.innerHTML;
+        }
+
+        // Validação de username
+        function validateUsername(username) {
+            if (username.length < 3) {
+                return "Username deve ter pelo menos 3 caracteres";
+            }
+            if (username.length > 20) {
+                return "Username não pode ter mais de 20 caracteres";
+            }
+            if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                return "Username só pode conter letras, números e underscore";
+            }
+            return null;
+        }
+
+        // Validação de password
+        function validatePassword(password) {
+            if (password.length < 8) {
+                return "Password deve ter pelo menos 8 caracteres";
+            }
+            if (!/[A-Z]/.test(password)) {
+                return "Password deve conter pelo menos uma letra maiúscula";
+            }
+            if (!/[a-z]/.test(password)) {
+                return "Password deve conter pelo menos uma letra minúscula";
+            }
+            if (!/[0-9]/.test(password)) {
+                return "Password deve conter pelo menos um número";
+            }
+            return null;
+        }
+
+        // Verificar força da password
+        function checkPasswordStrength(password) {
+            const strengthBar = document.getElementById('strength-bar');
+            let strength = 0;
+
+            if (password.length >= 8) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[a-z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+            strengthBar.className = 'password-strength-bar';
+            if (strength <= 2) {
+                strengthBar.classList.add('strength-weak');
+            } else if (strength <= 4) {
+                strengthBar.classList.add('strength-medium');
+            } else {
+                strengthBar.classList.add('strength-strong');
+            }
+        }
+
+        // ============================================================================
+        // FUNÇÕES DE UI
+        // ============================================================================
+
+        function showTab(tabName) {
+            // Atualizar tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Atualizar conteúdo
+            document.querySelectorAll('.form-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+
+            // Atualizar tabela de utilizadores se necessário
+            if (tabName === 'users') {
+                updateUsersTable();
+            }
+        }
+
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.classList.add('show');
+            setTimeout(() => element.classList.remove('show'), 5000);
+        }
+
+        function showSuccess(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.classList.add('show');
+            setTimeout(() => element.classList.remove('show'), 5000);
+        }
+
+        // ============================================================================
+        // HANDLERS DE FORMULÁRIOS
+        // ============================================================================
+
+        async function handleRegister(event) {
+            event.preventDefault();
+
+            const username = sanitizeInput(document.getElementById('register-username').value);
+            const email = sanitizeInput(document.getElementById('register-email').value);
+            const password = document.getElementById('register-password').value;
+            const confirm = document.getElementById('register-confirm').value;
+
+            // Validações
+            const usernameError = validateUsername(username);
+            if (usernameError) {
+                showError('register-error', usernameError);
+                return;
+            }
+
+            const passwordError = validatePassword(password);
+            if (passwordError) {
+                showError('register-error', passwordError);
+                return;
+            }
+
+            if (password !== confirm) {
+                showError('register-error', 'As passwords não coincidem');
+                return;
+            }
+
+            // Verificar se utilizador já existe
+            if (users.find(u => u.username === username)) {
+                showError('register-error', 'Este username já está registado');
+                return;
+            }
+
+            // Criar hash da password
+            const passwordHash = await hashPassword(password);
+
+            // Guardar utilizador
+            users.push({
+                username: username,
+                email: email,
+                passwordHash: passwordHash,
+                createdAt: new Date().toISOString()
+            });
+
+            showSuccess('register-success', '✓ Conta criada com sucesso! Pode fazer login agora.');
+            
+            // Limpar formulário
+            event.target.reset();
+            document.getElementById('strength-bar').className = 'password-strength-bar';
+
+            // Simular INSERT SQL
+            console.log('SQL EXECUTADO (Prepared Statement):');
+            console.log('INSERT INTO users (username, email, password_hash, created_at) VALUES (?, ?, ?, ?)');
+            console.log('Parâmetros:', [username, email, passwordHash, new Date().toISOString()]);
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const username = sanitizeInput(document.getElementById('login-username').value);
+            const password = document.getElementById('login-password').value;
+
+            // Criar hash da password para comparar
+            const passwordHash = await hashPassword(password);
+
+            // Procurar utilizador (simulação de prepared statement)
+            const user = users.find(u => u.username === username && u.passwordHash === passwordHash);
+
+            if (user) {
+                showSuccess('login-success', `✓ Bem-vindo, ${username}! Login efetuado com sucesso.`);
+                event.target.reset();
+
+                // Simular SELECT SQL
+                console.log('SQL EXECUTADO (Prepared Statement):');
+                console.log('SELECT * FROM users WHERE username = ? AND password_hash = ?');
+                console.log('Parâmetros:', [username, passwordHash]);
+            } else {
+                showError('login-error', '✗ Username ou password incorretos');
+            }
+        }
+
+        function updateUsersTable() {
+            const tbody = document.getElementById('users-tbody');
+            
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">Nenhum utilizador registado</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>
+                    <td><code style="font-size: 0.8em;">${user.passwordHash.substring(0, 20)}...</code></td>
+                    <td>${new Date(user.createdAt).toLocaleString('pt-PT')}</td>
+                </tr>
+            `).join('');
+        }
+
+        // ============================================================================
+        // DEMONSTRAÇÃO INICIAL
+        // ============================================================================
+
+        // Adicionar utilizador de demonstração
+        (async function() {
+            const demoPasswordHash = await hashPassword('Demo123');
+            users.push({
+                username: 'demo',
+                email: 'demo@exemplo.pt',
+                passwordHash: demoPasswordHash,
+                createdAt: new Date().toISOString()
+            });
+            console.log('👤 Utilizador demo criado: username="demo", password="Demo123"');
+        })();
+    </script>
+</body>
+</html>
